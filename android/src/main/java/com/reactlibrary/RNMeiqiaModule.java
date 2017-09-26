@@ -2,15 +2,17 @@
 package com.reactlibrary;
 
 import android.content.Intent;
-import android.widget.Toast;
 
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReadableMap;
 import com.meiqia.core.callback.OnInitCallback;
 import com.meiqia.meiqiasdk.util.MQConfig;
 import com.meiqia.meiqiasdk.util.MQIntentBuilder;
+
+import java.util.HashMap;
 
 
 public class RNMeiqiaModule extends ReactContextBaseJavaModule {
@@ -28,28 +30,34 @@ public class RNMeiqiaModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void init() {
+  public void init(String appKey, final Promise promise) {
     ReactApplicationContext context = getReactApplicationContext();
 
-    MQConfig.init(context, "Your Appkey", new OnInitCallback() {
+    MQConfig.init(context, appKey, new OnInitCallback() {
       @Override
       public void onSuccess(String clientId) {
-        ReactApplicationContext context = getReactApplicationContext();
-        Toast.makeText(context, "init success", Toast.LENGTH_SHORT).show();
+        promise.resolve(clientId);
       }
 
       @Override
       public void onFailure(int code, String message) {
-        ReactApplicationContext context = getReactApplicationContext();
-        Toast.makeText(context, "int failure", Toast.LENGTH_SHORT).show();
+        promise.reject(message);
       }
     });
   }
 
   @ReactMethod
-  public void start() {
+  public void start(ReadableMap options) {
     ReactApplicationContext context = getReactApplicationContext();
-    Intent intent = new MQIntentBuilder(context).build();
+
+    HashMap<String, String> clientInfo = new HashMap<>();
+    clientInfo.put("name", options.hasKey("name") ? options.getString("name") : options.getString("customizedId"));
+
+    Intent intent = new MQIntentBuilder(context)
+            .setCustomizedId(options.getString("customizedId"))
+            .setClientInfo(clientInfo)
+            .build();
+
     context.startActivity(intent);
   }
 }
