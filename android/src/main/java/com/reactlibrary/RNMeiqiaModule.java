@@ -56,6 +56,7 @@ public class RNMeiqiaModule extends ReactContextBaseJavaModule {
     Intent intent = new MQIntentBuilder(context)
             .setCustomizedId(options.getString("customizedId"))
             .setClientInfo(clientInfo)
+            .setScheduledGroup(options.hasKey("groupId") ? options.getString("groupId") : null)
             .build();
 
     context.startActivity(intent);
